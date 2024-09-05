@@ -70,16 +70,12 @@ def render_rgb(geometry):
 
     # Reshape the array to a 3D array (height, width, 3) for RGB
     np_array = np_array.reshape(height, width, -1)
-    print(np_array.shape)
 
-    # Access the RGB values of any pixel
-    x, y = 150, 150  # Example coordinates (mid point)
-    rgb = np_array[y, x]
-    print(f"Pixel at ({x}, {y}) has RGB values: {rgb}")
+    return np_array
 
 def main():
     sphere = create_sample_sphere()
-    render_rgb(sphere)
+    rgb_array = render_rgb(sphere)
 
 # This block will only be executed if the script is run directly
 if __name__ == "__main__":
