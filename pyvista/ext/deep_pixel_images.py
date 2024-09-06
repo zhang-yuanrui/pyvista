@@ -1,14 +1,12 @@
-# Get RGB
 import vtk
 import numpy as np
 from vtk.util.numpy_support import vtk_to_numpy
 
 def create_sample_sphere():
     sphere = vtk.vtkSphereSource()
-
+    sphere.Update()
     add_var(sphere, "Pick Data", lambda i: 3456)
     add_var(sphere, "Temperature", lambda i: i % 10000)
-    sphere.Update()
 
     return sphere
 
@@ -27,21 +25,13 @@ def add_var(geometry, var_name, val_calculator):
     geometry.GetOutput().GetPointData().SetActiveScalars(var_name)
 
 
-def setup_render_routine():
+def setup_render_routine(geometry):
     # Create the renderer, render window, and interactor
     renderer = vtk.vtkRenderer()
     render_win = vtk.vtkRenderWindow()
     render_win.SetOffScreenRendering(1)
     render_win.SetMultiSamples(0)
     render_win.AddRenderer(renderer)
-
-    # iRen = vtk.vtkRenderWindowInteractor()
-    # iRen.SetRenderWindow(ren_win)
-    
-    return renderer, render_win
-
-def render_rgb(geometry):
-    renderer, render_win = setup_render_routine()
 
     # Mapper and actor
     mapper = vtk.vtkPolyDataMapper()
@@ -52,6 +42,29 @@ def render_rgb(geometry):
     actor.GetProperty().SetColor(0, 0, 0.4)
     
     renderer.AddActor(actor)
+    
+    return renderer, render_win
+
+def setup_value_pass(renderer, var_name):
+    # Set up vtkValuePass
+    value_pass = vtk.vtkValuePass()
+    value_pass.SetInputArrayToProcess(vtk.VTK_SCALAR_MODE_USE_POINT_FIELD_DATA, var_name)
+    value_pass.SetInputComponentToProcess(0)
+
+    passes = vtk.vtkRenderPassCollection()
+    passes.AddItem(value_pass)  # Add value pass to the pass collection
+
+    sequence = vtk.vtkSequencePass()
+    sequence.SetPasses(passes)
+
+    camera_pass = vtk.vtkCameraPass()
+    camera_pass.SetDelegatePass(sequence)
+    renderer.SetPass(camera_pass)
+
+    return value_pass
+
+def render_rgb(geometry):
+    renderer, render_win = setup_render_routine(geometry)
 
     render_win.Render()
 
@@ -73,11 +86,48 @@ def render_rgb(geometry):
 
     return np_array
 
+def render_pick_data(geometry):
+    renderer, render_win = setup_render_routine(geometry)
+    value_pass = setup_value_pass(renderer, "Pick Data")
+    
+    render_win.Render()
+
+    buffer = value_pass.GetFloatImageDataArray(renderer)
+    np_buffer = vtk_to_numpy(buffer)
+    width, height = render_win.GetSize()
+    np_buffer = np_buffer.reshape(height, width)
+    nan_mask = np.isnan(np_buffer)
+    np_buffer = np.where(nan_mask, 0, np_buffer)
+    np_buffer = np_buffer.astype(np.int16)
+    pick_buffer = np.zeros((height, width, 4), dtype=np.uint8)
+    pick_buffer[:, :, 0] = np_buffer & 0xFF
+    pick_buffer[:, :, 1] = (np_buffer >> 8) & 0xFF 
+    return pick_buffer
+
+def render_var_data(geometry, var_name):
+    renderer, render_win = setup_render_routine(geometry)
+    value_pass = setup_value_pass(renderer, var_name)
+    
+    render_win.Render()
+
+    buffer = value_pass.GetFloatImageDataArray(renderer)
+    np_buffer = vtk_to_numpy(buffer)
+    width, height = render_win.GetSize()
+    np_buffer = np_buffer.reshape(height, width)
+    return np_buffer
+
 def main():
     sphere = create_sample_sphere()
-    rgb_array = render_rgb(sphere)
+    rgb_buffer = render_rgb(sphere)
+    print(rgb_buffer.shape)
+    print("*************************")
+    pick_buffer = render_pick_data(sphere)
+    print(pick_buffer[150][150])
+    print("*************************")
+    var_buffer = render_var_data(sphere, "Temperature")
+    print(var_buffer[150][150])
+    print("*************************")
 
-# This block will only be executed if the script is run directly
+
 if __name__ == "__main__":
     main()
-
