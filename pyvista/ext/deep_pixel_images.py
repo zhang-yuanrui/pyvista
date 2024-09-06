@@ -2,6 +2,9 @@ import vtk
 import numpy as np
 from vtk.util.numpy_support import vtk_to_numpy
 
+import tifffile
+import json
+
 def create_sample_sphere():
     sphere = vtk.vtkSphereSource()
     sphere.Update()
@@ -116,6 +119,33 @@ def render_var_data(geometry, var_name):
     np_buffer = np_buffer.reshape(height, width)
     return np_buffer
 
+def generate_tiff(rgb_buffer, pick_buffer, var_buffer):
+    data = {
+        "parts": [
+            {
+                "name": "sample", 
+                "id": "3456", 
+                "colorby_var": "3.0" 
+            }
+        ],
+        "variables": [
+            {
+                "name": "Temperature", 
+                "id": "3456", 
+                "pal_id": "3", 
+                "unit_dims": "M/LTT", 
+                "unit_system_to_name": "SI", 
+                "unit_label": "°C"
+            }
+        ]
+    }
+    image_description = json.dumps(data).encode('utf-8')
+
+    with tifffile.TiffWriter('sample.tiff', bigtiff=True) as tiff:
+        tiff.write(rgb_buffer, photometric='rgb', description=image_description)
+        tiff.write(pick_buffer, photometric='rgb')
+        tiff.write(var_buffer, dtype=np.float32)  # Store the float32 var data directly
+
 def main():
     sphere = create_sample_sphere()
     rgb_buffer = render_rgb(sphere)
@@ -125,8 +155,11 @@ def main():
     print(pick_buffer[150][150])
     print("*************************")
     var_buffer = render_var_data(sphere, "Temperature")
+    print(var_buffer.shape)
     print(var_buffer[150][150])
     print("*************************")
+    
+    generate_tiff(rgb_buffer, pick_buffer, var_buffer)
 
 
 if __name__ == "__main__":
