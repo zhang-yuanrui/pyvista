@@ -2247,11 +2247,11 @@ class DataSetFilters:
 
         """
         if use_bounds:
-            if isinstance(use_bounds, (int, bool)):
-                b = self.GetBounds()
-            origin = [b[0], b[2], b[4]]  # BOTTOM LEFT CORNER
-            point_u = [b[1], b[2], b[4]]  # BOTTOM RIGHT CORNER
-            point_v = [b[0], b[3], b[4]]  # TOP LEFT CORNER
+            _validation.check_type(use_bounds, (int, bool))
+            bounds = self.bounds
+            origin = [bounds.x_min, bounds.y_min, bounds.z_min]  # BOTTOM LEFT CORNER
+            point_u = [bounds.x_max, bounds.y_min, bounds.z_min]  # BOTTOM RIGHT CORNER
+            point_v = [bounds.x_min, bounds.y_max, bounds.z_min]  # TOP LEFT CORNER
         alg = _vtk.vtkTextureMapToPlane()
         if origin is None or point_u is None or point_v is None:
             alg.SetAutomaticPlaneGeneration(True)
@@ -7057,18 +7057,15 @@ class DataSetFilters:
             self.cell_data.active_scalars_name = active_cell_scalars_name
             res.cell_data.active_scalars_name = active_cell_scalars_name
 
-        if inplace:
-            self.copy_from(res, deep=False)
-            return self
-
+        self_output = self if inplace else self.__class__()
+        output = pyvista.StructuredGrid() if isinstance(self, pyvista.Grid) else self_output
         # The output from the transform filter contains a shallow copy
         # of the original dataset except for the point arrays.  Here
         # we perform a copy so the two are completely unlinked.
-        if isinstance(self, pyvista.Grid):
-            output: _vtk.vtkDataSet = pyvista.StructuredGrid()
+        if inplace:
+            output.copy_from(res, deep=False)
         else:
-            output = self.__class__()
-        output.copy_from(res, deep=True)
+            output.copy_from(res, deep=True)
         return output
 
     def reflect(
