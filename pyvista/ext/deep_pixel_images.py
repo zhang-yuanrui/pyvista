@@ -2,8 +2,10 @@ import vtk
 import numpy as np
 from vtk.util.numpy_support import vtk_to_numpy
 
-import tifffile
+from PIL import Image, TiffImagePlugin
 import json
+
+# import report_utils
 
 def create_sample_sphere():
     sphere = vtk.vtkSphereSource()
@@ -25,7 +27,7 @@ def add_var(geometry, var_name, val_calculator):
         arr.SetValue(i, val_calculator(i))
 
     geometry.GetOutput().GetPointData().AddArray(arr)
-    geometry.GetOutput().GetPointData().SetActiveScalars(var_name)
+    # geometry.GetOutput().GetPointData().SetActiveScalars(var_name)
 
 
 def setup_render_routine(geometry):
@@ -35,6 +37,9 @@ def setup_render_routine(geometry):
     render_win.SetOffScreenRendering(1)
     render_win.SetMultiSamples(0)
     render_win.AddRenderer(renderer)
+
+    # render_window_interactor = vtk.vtkRenderWindowInteractor()
+    # render_window_interactor.SetRenderWindow(render_win)
 
     # Mapper and actor
     mapper = vtk.vtkPolyDataMapper()
@@ -46,7 +51,7 @@ def setup_render_routine(geometry):
     
     renderer.AddActor(actor)
     
-    return renderer, render_win
+    return renderer, render_win #, render_window_interactor
 
 def setup_value_pass(renderer, var_name):
     # Set up vtkValuePass
@@ -86,6 +91,7 @@ def render_rgb(geometry):
 
     # Reshape the array to a 3D array (height, width, 3) for RGB
     np_array = np_array.reshape(height, width, -1)
+    # render_window_interactor.Start()
 
     return np_array
 
@@ -139,12 +145,18 @@ def generate_tiff(rgb_buffer, pick_buffer, var_buffer):
             }
         ]
     }
-    image_description = json.dumps(data).encode('utf-8')
+    image_description = json.dumps(data)
 
-    with tifffile.TiffWriter('sample.tiff', bigtiff=True) as tiff:
-        tiff.write(rgb_buffer, photometric='rgb', description=image_description)
-        tiff.write(pick_buffer, photometric='rgb')
-        tiff.write(var_buffer, dtype=np.float32)  # Store the float32 var data directly
+    rgb_image = Image.fromarray(rgb_buffer, mode='RGB')
+    pick_image = Image.fromarray(pick_buffer, mode='RGBA')
+    var_image = Image.fromarray(var_buffer, mode='F')
+
+    tiffinfo = TiffImagePlugin.ImageFileDirectory_v2()
+    tiffinfo[TiffImagePlugin.IMAGEDESCRIPTION] = image_description
+
+    rgb_image.save('output_file.tiff', format='TIFF', save_all=True,
+                    append_images=[pick_image, var_image], tiffinfo=tiffinfo)
+    
 
 def main():
     sphere = create_sample_sphere()
@@ -160,6 +172,8 @@ def main():
     print("*************************")
     
     generate_tiff(rgb_buffer, pick_buffer, var_buffer)
+
+    # report_utils.PIL_image_to_data("output_file.tiff")
 
 
 if __name__ == "__main__":
