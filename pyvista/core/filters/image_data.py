@@ -233,6 +233,7 @@ class ImageDataFilters(DataSetFilters):
         -------
         pyvista.ImageData
             ImageData subset.
+
         """
         alg = _vtk.vtkExtractVOI()
         alg.SetVOI(voi)
@@ -1269,7 +1270,7 @@ class ImageDataFilters(DataSetFilters):
             dims_mask,
         )
         new_image.spacing = self.spacing  # type: ignore[attr-defined]
-        new_image.SetDirectionMatrix(self.GetDirectionMatrix())  # type: ignore[attr-defined]
+        new_image.direction_matrix = self.direction_matrix  # type: ignore[attr-defined]
 
         # Copy field data
         new_image.field_data.update(self.field_data)  # type: ignore[attr-defined]

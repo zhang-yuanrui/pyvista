@@ -66,12 +66,10 @@ class PartitionedDataSet(_vtk.vtkPartitionedDataSet, DataObject, MutableSequence
                 self.SetPartition(i, wrap(partition))
 
     @overload
-    def __getitem__(self, index: int) -> DataSet | None:  # noqa: D105
-        ...  # pragma: no cover
+    def __getitem__(self, index: int) -> DataSet | None: ...  # pragma: no cover
 
     @overload
-    def __getitem__(self, index: slice) -> PartitionedDataSet:  # noqa: D105
-        ...  # pragma: no cover
+    def __getitem__(self, index: slice) -> PartitionedDataSet: ...  # pragma: no cover
 
     def __getitem__(self, index):
         """Get a partition by its index."""
@@ -85,12 +83,10 @@ class PartitionedDataSet(_vtk.vtkPartitionedDataSet, DataObject, MutableSequence
             return wrap(self.GetPartition(index))
 
     @overload
-    def __setitem__(self, index: int, data: DataSet | None):  # noqa: D105
-        ...  # pragma: no cover
+    def __setitem__(self, index: int, data: DataSet | None): ...  # pragma: no cover
 
     @overload
-    def __setitem__(self, index: slice, data: Iterable[DataSet | None]):  # noqa: D105
-        ...  # pragma: no cover
+    def __setitem__(self, index: slice, data: Iterable[DataSet | None]): ...  # pragma: no cover
 
     def __setitem__(
         self,
@@ -111,19 +107,6 @@ class PartitionedDataSet(_vtk.vtkPartitionedDataSet, DataObject, MutableSequence
     def __delitem__(self, index: int | slice) -> None:
         """Remove a partition at the specified index are not supported."""
         raise PartitionedDataSetsNotSupported
-
-    def __iter__(self) -> PartitionedDataSet:
-        """Return the iterator across all partitions."""
-        self._iter_n = 0
-        return self
-
-    def __next__(self) -> DataSet | None:
-        """Get the next partition from the iterator."""
-        if self._iter_n < self.n_partitions:
-            result = self[self._iter_n]
-            self._iter_n += 1
-            return result
-        raise StopIteration
 
     def insert(self, index: int, dataset: DataSet) -> None:  # numpydoc ignore=PR01
         """Insert data before index."""
@@ -241,6 +224,7 @@ class PartitionedDataSet(_vtk.vtkPartitionedDataSet, DataObject, MutableSequence
         -------
         int
             The number of partitions.
+
         """
         return self.GetNumberOfPartitions()
 
@@ -256,6 +240,7 @@ class PartitionedDataSet(_vtk.vtkPartitionedDataSet, DataObject, MutableSequence
         ----------
         dataset : pyvista.DataSet
             Dataset to append to this partitioned dataset.
+
         """
         index = self.n_partitions
         self.n_partitions += 1

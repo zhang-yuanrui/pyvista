@@ -19,11 +19,11 @@ def _padded_bins(mesh, density):
 
     Parameters
     ----------
-        mesh : pyvista.DataSet
-            Mesh to voxelize.
+    mesh : pyvista.DataSet
+        Mesh to voxelize.
 
-        density : array_like[float]
-            A list of densities along x,y,z directions.
+    density : array_like[float]
+        A list of densities along x,y,z directions.
 
     Returns
     -------
@@ -33,6 +33,7 @@ def _padded_bins(mesh, density):
     Notes
     -----
     Ensures limits of voxelization are padded to ensure the mesh is fully enclosed.
+
     """
     bounds = np.array(mesh.bounds).reshape(3, 2)
     bin_count = np.ceil(1e-10 + (bounds[:, 1] - bounds[:, 0]) / density)
@@ -81,6 +82,14 @@ def voxelize(mesh, density=None, check_surface=True, enclosed=False, fit_bounds=
     -----
     Prior to version 0.39.0, this method improperly handled the order of
     structured coordinates.
+
+    See Also
+    --------
+    pyvista.voxelize_volume
+        Similar function that returns a :class:`pyvista.RectilinearGrid` with cell data.
+
+    pyvista.PolyDataFilters.voxelize_binary_mask
+        Similar function that returns a :class:`pyvista.ImageData` with point data.
 
     Examples
     --------
@@ -245,6 +254,12 @@ def voxelize_volume(mesh, density=None, check_surface=True, enclosed=False, fit_
     See Also
     --------
     pyvista.voxelize
+        Similar function that returns a :class:`pyvista.UnstructuredGrid` of
+        :attr:`~pyvista.CellType.VOXEL` cells.
+
+    pyvista.PolyDataFilters.voxelize_binary_mask
+        Similar function that returns a :class:`pyvista.ImageData` with point data.
+
     pyvista.DataSetFilters.select_enclosed_points
 
     Examples
@@ -536,6 +551,7 @@ def spherical_to_cartesian(r, phi, theta):
     -------
     numpy.ndarray, numpy.ndarray, numpy.ndarray
         Cartesian coordinates.
+
     """
     s = np.sin(phi)
     x = r * s * np.cos(theta)

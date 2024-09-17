@@ -1,5 +1,4 @@
-"""
-Limited imports from VTK (excludes any GL-dependent).
+"""Limited imports from VTK (excludes any GL-dependent).
 
 These are the modules within VTK that must be loaded across pyvista's
 core API. Here, we attempt to import modules using the ``vtkmodules``
@@ -46,6 +45,10 @@ from vtkmodules.util.numpy_support import get_vtk_array_type
 from vtkmodules.util.numpy_support import numpy_to_vtk
 from vtkmodules.util.numpy_support import numpy_to_vtkIdTypeArray
 from vtkmodules.util.numpy_support import vtk_to_numpy
+
+with contextlib.suppress(ImportError):
+    from vtkmodules.util.pickle_support import serialize_VTK_data_object
+
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 from vtkmodules.vtkCommonComputationalGeometry import vtkKochanekSpline
 from vtkmodules.vtkCommonComputationalGeometry import vtkParametricBohemianDome
@@ -360,6 +363,9 @@ from vtkmodules.vtkFiltersSources import vtkSphereSource
 from vtkmodules.vtkFiltersSources import vtkSuperquadricSource
 from vtkmodules.vtkFiltersSources import vtkTessellatedBoxSource
 from vtkmodules.vtkFiltersStatistics import vtkComputeQuartiles
+
+with contextlib.suppress(ImportError):
+    from vtkmodules.vtkFiltersStatistics import vtkLengthDistribution
 from vtkmodules.vtkFiltersTexture import vtkTextureMapToPlane
 from vtkmodules.vtkFiltersTexture import vtkTextureMapToSphere
 from vtkmodules.vtkFiltersVerdict import vtkCellQuality
@@ -381,6 +387,8 @@ from vtkmodules.vtkImagingGeneral import vtkImageGaussianSmooth
 from vtkmodules.vtkImagingGeneral import vtkImageMedian3D
 from vtkmodules.vtkImagingHybrid import vtkSampleFunction
 from vtkmodules.vtkImagingHybrid import vtkSurfaceReconstructionFilter
+from vtkmodules.vtkImagingStencil import vtkImageStencil
+from vtkmodules.vtkImagingStencil import vtkPolyDataToImageStencil
 from vtkmodules.vtkIOGeometry import vtkHoudiniPolyDataWriter
 from vtkmodules.vtkIOGeometry import vtkIVWriter
 from vtkmodules.vtkIOGeometry import vtkOBJWriter
