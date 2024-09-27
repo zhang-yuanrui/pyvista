@@ -1,3 +1,5 @@
 *.tiff
 
 report_utils.py
+
+*.png
