@@ -134,13 +134,11 @@ def setup_value_pass(poly_data, renderer, var_name):
 
 def get_rgb_value(render_window):
     width, height = render_window.GetSize()
-    print(f"Before: Render window size: {width}x{height}")
     # render_window.SetSize(800, 600)
 
     render_window.Render()
-    
+
     width, height = render_window.GetSize()
-    print(f"After: Render window size: {width}x{height}")
 
     # Capture the rendering result
     window_to_image_filter = vtk.vtkWindowToImageFilter()
