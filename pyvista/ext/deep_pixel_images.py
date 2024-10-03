@@ -4,6 +4,7 @@ from vtk.util.numpy_support import vtk_to_numpy
 
 from PIL import Image, TiffImagePlugin
 import json
+import io
 
 # import report_utils
 
@@ -188,7 +189,8 @@ def render_var_data(poly_data, renderer, render_window, var_name):
     np_buffer = np_buffer.reshape(height, width)
     return np_buffer
 
-def generate_tiff(json_data, rgb_buffer, pick_buffer, var_buffer, output_file_name):
+# output can be an output file name or a in-memory buffer
+def form_multipage_image(json_data, rgb_buffer, pick_buffer, var_buffer, output):
     image_description = json.dumps(json_data)
 
     rgb_image = Image.fromarray(rgb_buffer, mode='RGB')
@@ -198,8 +200,18 @@ def generate_tiff(json_data, rgb_buffer, pick_buffer, var_buffer, output_file_na
     tiffinfo = TiffImagePlugin.ImageFileDirectory_v2()
     tiffinfo[TiffImagePlugin.IMAGEDESCRIPTION] = image_description
 
-    rgb_image.save(output_file_name, format='TIFF', save_all=True,
+    rgb_image.save(output, format='TIFF', save_all=True,
                     append_images=[pick_image, var_image], tiffinfo=tiffinfo)
+
+def generate_tiff(json_data, rgb_buffer, pick_buffer, var_buffer, output_file_name):
+    form_multipage_image(json_data, rgb_buffer, pick_buffer, var_buffer, output_file_name)
+    
+def generate_multipage_image_in_memory(json_data, rgb_buffer, pick_buffer, var_buffer):
+    # Create an in-memory bytes buffer
+    buffer = io.BytesIO()
+    form_multipage_image(json_data, rgb_buffer, pick_buffer, var_buffer, buffer)
+    buffer.seek(0)
+    return buffer
     
 
 def test():

@@ -7,6 +7,8 @@ import vtk
 
 import numpy as np
 
+from PIL import Image
+
 # from typing import List, Tuple
 
 colorby_var_id = 1
@@ -68,6 +70,15 @@ def generate_deep_pixel_image(model: dpf.Model, var_field: dpf.Field):
     }
 
     dpi.generate_tiff(json_data, rgb_buffer, pick_buffer, var_buffer, "dpf_sample_new.tiff")
+    
+    
+    # In memory solution
+    multipage_buffer = dpi.generate_multipage_image_in_memory(json_data, rgb_buffer, pick_buffer, var_buffer)
+    multipage_image = Image.open(multipage_buffer)
+    metadata = multipage_image.tag_v2
+
+    # Save the image to disk with all pages intact
+    multipage_image.save("dpf_sample_in_memory.tiff", save_all=True, tiffinfo=metadata)
     
 
 def main():
